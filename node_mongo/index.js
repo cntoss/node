@@ -6,32 +6,37 @@ const dbname = 'conFusion';
 
 const dboper = require('./operations');
 
-MongoClient.connect(url, (err, client) => {
-
-    assert.equal(err, null);
+MongoClient.connect(url, { useUnifiedTopology: true }).then((client) => {
 
     console.log('Connected correctly to server');
-
     const db = client.db(dbname);
 
-    dboper.insertDocument(db, { "name": "Tucker", "description": "tHe muji umesh" }, "dishes", (result) => {
-        console.log("inserted documnets \n");
-        console.log(result.ops);
+    dboper.insertDocument(db, { "name": "Tucker", "description": "tHe muji umesh" }, "dishes")
+        .then((result) => {
+            console.log("inserted documnets \n");
+            console.log(result.ops);
 
-        dboper.findDocument(db, 'dishes', (result) => {
+            return dboper.findDocument(db, 'dishes')
+        })
+        .then((result) => {
             console.log("found result \n", result);
-           
-            dboper.updateDocument(db, { name: "Tucker" }, { description: "god is great" }, "dishes", (result) => {
-                console.log("updated documents \n", result.result);
-             
-                dboper.findDocument(db, 'dishes', (result) => {
-                    console.log("found result \n", result);
-               
-                    db.dropCollection('dishes', (err, result) => {
-                        console.log("dropped collection", result);
-                    });
-                });
-            })
-        });
-    });
-});
+
+            return dboper.updateDocument(db, { name: "Tucker" }, { description: "god is great" }, "dishes")
+        })
+        .then((result) => {
+            console.log("updated documents \n", result.result);
+
+            return dboper.findDocument(db, 'dishes')
+        })
+        .then((result) => {
+            console.log("found result \n", result);
+
+            return db.dropCollection('dishes')
+        })
+        .then((result) => {
+            console.log("dropped collection", result);
+            return client.close();
+        }).catch((err) => console.log(err));
+   
+}).
+catch((err) => console.log(err));
