@@ -3,17 +3,21 @@ var express = require('express');
 var path = require('path');
 var logger = require('morgan');
 
+var passport = require('passport');
+var authenticate = require('./authenticate');
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishRouter = require('./routes/dishRouter');
 var leaderRouter = require('./routes/leaderRouter');
 var promoRouter = require('./routes/promoRouter');
+var config = require('./config');
 
 const mongoose = require('mongoose');
 
 const Dishes = require('./models/dishes');
 
-const url = 'mongodb://localhost:27017/conFusion';
+const url = config.mongoUrl;
 
 const connect = mongoose.connect(url);
 
@@ -41,10 +45,38 @@ app.use(session({
   store: new FileStore()
 }));
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(passport.initialize());
+app.use(passport.session());
 
+function auth(req, res, next) {
+  console.log(req.user);
+
+  if (!req.user) {
+    var err = new Error('fuck umesh');
+    err.status = 403;
+    next(err);
+  }
+  else {
+    next();
+  }
+}
+
+function auth2(req, res, next) {
+   if (!authenticate.verifyUser) {
+    var err = new Error('fuck your request');
+    err.status = 403;
+    next(err);
+  }
+  else {
+    next();
+  }
+}
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(auth);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use(auth2);
 app.use('/dishes', dishRouter);
 app.use('leaders', leaderRouter);
 app.use('promotions', promoRouter);
