@@ -7,10 +7,12 @@ const { json } = require('express');
 
 const dishRouter = express.Router();
 
+var authenticate = require('../authenticate');
+
 dishRouter.use(bodyParser.json());
 
 dishRouter.route('/')
-    .get((req, res, next) => {
+    .get(authenticate.verifyUser, (req, res, next) => {
         Dishes.find({})
             .then((dishes) => {
                 res.statusCode = 200;
@@ -19,7 +21,7 @@ dishRouter.route('/')
             }, (err) => next(err))
             .catch((err) => next(err))
     })
-    .post((req, res, next) => {
+    .post(authenticate.verifyUser, (req, res, next) => {
         Dishes.create(req.body)
             .then((dish) => {
                 console.log('Dish created', dish);
@@ -33,7 +35,7 @@ dishRouter.route('/')
         res.statusCode = 401;
         res.end('Put operation did not supported on /dishes');
     })
-    .delete((req, res, next) => {
+    .delete(authenticate.verifyUser, (req, res, next) => {
         Dishes.remove({})
             .then((response) => {
                 res.statusCode = 200;
