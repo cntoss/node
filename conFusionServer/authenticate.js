@@ -12,7 +12,8 @@ passport.use(new locatStrategy(User.authenticate()));//default usename and passw
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-exports.getToken = function (user) {
+exports.getToken = function (user) {//pass data in user like var token = jwt.sign({ foo: 'bar' }, 'shhhhh');
+
     return jwt.sign(user, config.secretKey,
         { expiresIn: 3600 });
 };
