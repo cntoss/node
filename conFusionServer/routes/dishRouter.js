@@ -15,7 +15,7 @@ dishRouter.use(bodyParser.json());
 dishRouter.route('/')
     .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
     .get(cors.cors, authenticate.verifyUser, (req, res, next) => {
-        Dishes.find({})
+        Dishes.find(req.query)
             .then((dishes) => {
                 res.statusCode = 200;
                 res.contentType('content-type', 'application-json');
