@@ -14,7 +14,7 @@ commentRouter.route('/')
     .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
     .get(cors.cors, (req, res, next) => {
         Comments.find(req.query)
-            .populate('auther')
+            .populate('author')
             .then((comments) => {
                 res.statusCode = 200;
                 res.contentType('content-type', 'application-json');
@@ -24,14 +24,20 @@ commentRouter.route('/')
     })
     .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         if (req.body != null) {
-            Comments.create(req.body)
+            if (req.body != null) {
+                req.body.author = req.user._id;
+                Comments.create(req.body)
                 .then((comment) => {
-                    console.log('Comment created', comment);
-                    res.statusCode = 200;
-                    res.contentType('content-type', 'application-json');
-                    res.json(comment);
+                    Comments.findById(comment._id)
+                    .populate('author')
+                    .then((comment) => {
+                        res.statusCode = 200;
+                        res.setHeader('Content-Type', 'application/json');
+                        res.json(comment);
+                    })
                 }, (err) => next(err))
-                .catch((err) => next(err))
+                .catch((err) => next(err));
+            }
         } else {
             err = new Error('Comment not found in request body');
             err.status = 404;
